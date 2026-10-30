@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+    <meta name="theme-color" content="#B76E79">
+    <title>Foto Evento</title>
+    <meta name="description" content="Livro de Casamento Digital Animado">
+    <meta property="og:title" content="Foto Evento">
+    <meta property="og:description" content="Livro de Casamento Digital Animado">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://i.postimg.cc/NGy27p9M/Whats-App-Image-2026-09-02-at-09-28-55-removebg-preview.png">
+    <link id="siteFavicon" rel="icon" href="https://i.postimg.cc/NGy27p9M/Whats-App-Image-2026-09-02-at-09-28-55-removebg-preview.png">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;800&family=Dancing+Script:wght@500;700&family=Montserrat:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Fredoka:wght@400;600&family=Bangers&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- PageFlip JS -->
+    <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        .font-playfair { font-family: 'Playfair Display', serif; }
+        .font-montserrat { font-family: 'Montserrat', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
+        #myBook { margin: 0 auto; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7); }
+        .page { background-color: #fdfbf7; color: #1e293b; overflow: hidden; border-left: 1px solid rgba(0,0,0,0.05); border-right: 1px solid rgba(0,0,0,0.05); }
+        .page-cover { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: #fbbf24; position: relative; }
+        @media (max-width: 768px) { body { font-size: 14px; } #viewerStage { padding: 4px; } }
+    </style>
+</head>
+<body id="appBody" class="bg-slate-950 text-slate-100 font-montserrat min-h-screen relative overflow-x-hidden transition-colors duration-300">
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="fixed top-5 right-5 z-[9999] flex flex-col space-y-2 pointer-events-none"></div>
+
+    <div id="bgImageContainer" class="fixed inset-0 pointer-events-none z-0 bg-cover bg-center transition-all duration-500" style="background-image: url('https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?auto=format&fit=crop&w=2000&q=80');"></div>
+    <div id="bgOverlay" class="fixed inset-0 pointer-events-none z-0 bg-slate-950/85 backdrop-blur-[2px]"></div>
+
+    <div class="relative z-10 flex flex-col min-h-screen">
+        <!-- Header -->
+        <header class="border-b border-white/10 bg-slate-900/80 backdrop-blur-md sticky top-0 z-40 px-3 sm:px-6 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <div id="logoContainer" class="p-2 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-200 text-slate-950 shadow-lg flex items-center justify-center overflow-hidden w-9 h-9 sm:w-10 sm:h-10">
+                    <i data-lucide="camera" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+                </div>
+                <div>
+                    <h1 id="siteTitleText" class="text-base sm:text-xl font-bold tracking-tight font-playfair truncate max-w-[130px] sm:max-w-none">Foto Evento</h1>
+                    <p id="siteSubtitleText" class="text-[10px] sm:text-xs text-slate-400 truncate max-w-[130px] sm:max-w-none">Livro Digital Animado</p>
+                </div>
+            </div>
+
+            <!-- Redes Sociais no Header -->
+            <div id="headerSocialIcons" class="hidden md:flex items-center space-x-3 text-slate-300"></div>
+
+            <div class="flex items-center space-x-1.5 sm:space-x-3">
+                <div class="hidden sm:flex items-center bg-slate-800/80 border border-white/10 rounded-full px-3 py-1.5 space-x-2 text-xs">
+                    <button onclick="toggleGlobalMusic()" class="text-amber-400 hover:text-amber-300 transition-colors p-1" title="Silenciar / Tocar">
+                        <i id="globalAudioIcon" class="fa-solid fa-volume-high w-4 h-4"></i>
+                    </button>
+                    <span id="musicStatus" class="max-w-[80px] truncate text-slate-300">Trilha</span>
+                    <input type="range" min="0" max="1" step="0.05" value="0.5" oninput="changeVolume(this.value)" class="w-12 accent-amber-400 cursor-pointer">
+                </div>
+
+                <button onclick="requestAdminAccess()" class="p-2 sm:p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-400 border border-white/10 transition-all flex items-center space-x-1 shadow-lg" title="Painel Admin">
+                    <i class="fa-solid fa-lock w-4 h-4 text-amber-400"></i>
+                    <span class="hidden md:inline text-xs font-semibold">Admin</span>
+                </button>
+
+                <button onclick="checkAdminForNewAlbum()" class="px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs transition-all shadow-md flex items-center space-x-1">
+                    <i class="fa-solid fa-plus-circle w-4 h-4"></i>
+                    <span class="hidden sm:inline">Criar Álbum</span>
+                </button>
+            </div>
+        </header>
+
+        <audio id="bgAudio" loop src=""></audio>
+
+        <!-- Seção Hero -->
+        <section class="px-4 lg:px-8 py-6 md:py-10 max-w-7xl mx-auto w-full text-center space-y-2 sm:space-y-3">
+            <span id="heroBadgeText" class="px-3 py-1 text-[11px] sm:text-xs font-semibold rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 uppercase tracking-widest inline-block">Portfólio Profissional</span>
+            <h2 id="heroHeading" class="text-2xl sm:text-3xl md:text-5xl font-bold tracking-tight text-white">Memórias Inesquecíveis em Experiências Visuais</h2>
+            <p id="heroSubtext" class="text-slate-300 text-xs sm:text-sm md:text-base max-w-2xl mx-auto leading-relaxed">Navegue por álbuns estilizados em 3D, revistas, quadrinhos e muito mais.</p>
+        </section>
+
+        <!-- Filtro de Álbuns + Menus Customizáveis -->
+        <div class="max-w-7xl mx-auto px-4 lg:px-8 w-full mb-6">
+            <div class="bg-slate-900/80 border border-white/10 p-3 rounded-2xl flex flex-wrap items-center justify-between gap-3 shadow-xl backdrop-blur-md">
+                <div class="flex items-center space-x-2 w-full sm:w-auto">
+                    <div class="flex items-center space-x-1.5 text-amber-400 text-xs font-bold uppercase tracking-wider px-1">
+                        <i class="fa-solid fa-layer-group"></i>
+                        <span>Álbuns:</span>
+                    </div>
+                    <select id="albumDropdownFilter" onchange="onDropdownFilterChange(this.value)" class="flex-1 sm:flex-none bg-slate-800 border border-white/15 text-white text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-amber-400 font-semibold cursor-pointer">
+                        <option value="todos">📂 Todos os Álbuns</option>
+                        <option value="livro">📖 Livro / Folhear 3D</option>
+                        <option value="revista">📰 Revista Fotográfica</option>
+                        <option value="quadrinho">💥 Quadrinhos / Pop-Art</option>
+                        <option value="casamento">💍 Casamento</option>
+                        <option value="debutante">✨ 15 Anos</option>
+                        <option value="formatura">🎓 Formatura</option>
+                    </select>
+                </div>
+                <div class="flex items-center space-x-2 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0" id="customMenuItemsContainer"></div>
+            </div>
+        </div>
+
+        <!-- Grade de Álbuns -->
+        <main id="mainDynamicContent" class="max-w-7xl mx-auto px-4 lg:px-8 w-full flex-grow pb-16">
+            <div id="albumsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6"></div>
+        </main>
+
+        <!-- Rodapé -->
+        <footer class="border-t border-white/10 bg-slate-900/80 backdrop-blur-md py-6 px-4 text-center text-xs text-slate-400 space-y-3">
+            <div id="footerSocialIcons" class="flex justify-center items-center space-x-4"></div>
+            <p id="footerText">© 2026 Foto Evento. Todos os direitos reservados.</p>
+        </footer>
+    </div>
+
+    <!-- MODAL SENHA ADMIN -->
+    <div id="passwordModal" class="fixed inset-0 z-50 hidden bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-white/10 rounded-2xl max-w-sm w-full p-6 shadow-2xl relative text-center space-y-4">
+            <button onclick="closePasswordModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            <div class="w-12 h-12 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full flex items-center justify-center mx-auto">
+                <i class="fa-solid fa-lock text-xl"></i>
+            </div>
+            <h3 class="text-lg font-bold text-white">Acesso Administrador</h3>
+            <input type="password" id="adminPasswordInput" placeholder="Senha (12345)" class="w-full bg-slate-800 border border-white/10 rounded-lg p-3 text-sm text-center text-white tracking-widest focus:outline-none focus:border-amber-400">
+            <button onclick="verifyAdminPassword()" class="w-full py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm rounded-lg shadow-md transition-all">Entrar</button>
+        </div>
+    </div>
+
+    <!-- PAINEL ADMIN COMPLETO -->
+    <div id="settingsDrawer" class="fixed inset-y-0 right-0 w-full sm:w-[480px] bg-slate-900 border-l border-white/10 z-50 transform translate-x-full transition-transform duration-300 ease-in-out p-5 sm:p-6 shadow-2xl overflow-y-auto">
+        <div class="flex items-center justify-between border-b border-white/10 pb-4 mb-6">
+            <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-gears text-amber-400 text-lg"></i>
+                <h3 class="font-bold text-base sm:text-lg text-white">Painel de Configurações & Admin</h3>
+            </div>
+            <button onclick="toggleSettingsDrawer()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+
+        <div class="space-y-6">
+            <div class="space-y-3 bg-slate-800/60 p-4 rounded-xl border border-amber-500/30">
+                <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wide"><i class="fa-solid fa-database mr-1"></i> Credenciais Supabase</h4>
+                <div><label class="block text-[11px] text-slate-300 mb-1">SUPABASE URL</label><input type="text" id="configSupabaseUrl" class="w-full bg-slate-800 border border-white/10 rounded-lg p-2 text-xs text-white"></div>
+                <div><label class="block text-[11px] text-slate-300 mb-1">SUPABASE ANON KEY</label><input type="text" id="configSupabaseKey" class="w-full bg-slate-800 border border-white/10 rounded-lg p-2 text-xs text-white"></div>
+                <button onclick="initSupabaseAndSave()" class="w-full py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-lg">Atualizar Conexão Supabase</button>
+            </div>
+
+            <div class="space-y-3 bg-slate-800/40 p-4 rounded-xl border border-white/5">
+                <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wide">Editar Textos da Página</h4>
+                <div><label class="block text-[11px] text-slate-300 mb-1">Título da Página</label><input type="text" id="configTitle" class="w-full bg-slate-800 border border-white/10 rounded-lg p-2 text-xs text-white"></div>
+                <div><label class="block text-[11px] text-slate-300 mb-1">Subtítulo</label><input type="text" id="configSubtitle" class="w-full bg-slate-800 border border-white/10 rounded-lg p-2 text-xs text-white"></div>
+                <div><label class="block text-[11px] text-slate-300 mb-1">Badge Superior (Hero)</label><input type="text" id="configHeroBadge" class="w-full bg-slate-800 border border-white/10 rounded-lg p-2 text-xs text-white"></div>
+                <div><label class="block text-[11px] text-slate-300 mb-1">Título Principal (Hero)</label><input type="text" id="configHeroHeading" class="w-full bg-slate-800 border border-white/10 rounded-lg p-2 text-xs text-white"></div>
+                <div><label class="block text-[11px] text-slate-300 mb-1">Subtítulo Principal (Hero)</label><textarea id="configHeroSubtext" rows="2" class="w-full bg-slate-800 border border-white/10 rounded-lg p-2 text-xs text-white"></textarea></div>
+                <div><label class="block text-[11px] text-slate-300 mb-1">Rodapé</label><input type="text" id="configFooter" class="w-full bg-slate-800 border border-white/10 rounded-lg p-2 text-xs text-white"></div>
+                <button onclick="savePageTexts()" class="w-full py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-lg">Salvar Textos</button>
+            </div>
+
+            <div class="space-y-4 bg-slate-800/40 p-4 rounded-xl border border-white/5">
+                <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wide">Configurar 2 Itens de Menu</h4>
+                <div class="space-y-2 pb-3 border-b border-white/5">
+                    <span class="text-[11px] font-semibold text-slate-200">Item 1 do Menu</span>
+                    <input type="text" id="menu1Title" placeholder="Nome do Menu" class="w-full bg-slate-800 border border-white/10 rounded-lg p-2 text-xs text-white">
+                    <select id="menu1Type" class="w-full bg-slate-800 border border-white/10 rounded-lg p-2 text-xs text-white"><option value="link">Link Externo</option><option value="iframe">Site Incorporado (Iframe)</option><option value="html">Código HTML</option></select>
+                    <textarea id="menu1Content" rows="2" placeholder="URL ou HTML" class="w-full bg-slate-800 border border-white/10 rounded-lg p-2 text-xs text-white"></textarea>
+                </div>
+                <div class="space-y-2">
+                    <span class="text-[11px] font-semibold text-slate-200">Item 2 do Menu</span>
+                    <input type="text" id="menu2Title" placeholder="Nome do Menu" class="w-full bg-slate-800 border border-white/10 rounded-lg p-2 text-xs text-white">
+                    <select id="menu2Type" class="w-full bg-slate-800 border border-white/10 rounded-lg p-2 text-xs text-white"><option value="link">Link Externo</option><option value="iframe">Site Incorporado (Iframe)</option><option value="html">Código HTML</option></select>
+                    <textarea id="menu2Content" rows="2" placeholder="URL ou HTML" class="w-full bg-slate-800 border border-white/10 rounded-lg p-2 text-xs text-white"></textarea>
+                </div>
+                <button onclick="saveCustomMenus()" class="w-full py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-lg">Salvar Menus Customizados</button>
+            </div>
+
+            <div class="bg-slate-800/40 p-4 rounded-xl border border-white/5 space-y-3">
+                <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wide">Redes Sociais</h4>
+                <div><label class="block text-[11px] text-slate-300 mb-1"><i class="fa-brands fa-instagram text-pink-400"></i> Instagram URL</label><input type="text" id="socialInstagram" class="w-full bg-slate-800 border border-white/10 rounded-lg p-2 text-xs text-white"></div>
+                <div><label class="block text-[11px] text-slate-300 mb-1"><i class="fa-brands fa-facebook text-blue-400"></i> Facebook URL</label><input type="text" id="socialFacebook" class="w-full bg-slate-800 border border-white/10 rounded-lg p-2 text-xs text-white"></div>
+                <div><label class="block text-[11px] text-slate-300 mb-1"><i class="fa-brands fa-whatsapp text-green-400"></i> WhatsApp</label><input type="text" id="socialWhatsapp" class="w-full bg-slate-800 border border-white/10 rounded-lg p-2 text-xs text-white"></div>
+                <button onclick="saveSocialLinks()" class="w-full py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-lg">Salvar Redes Sociais</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL VISUALIZAÇÃO DE ÁLBUM -->
+    <div id="albumViewerModal" class="fixed inset-0 z-50 hidden bg-slate-950/95 backdrop-blur-xl flex flex-col justify-between overflow-hidden" onclick="triggerAutoAudio()">
+        <div class="p-3 sm:p-4 border-b border-white/10 flex items-center justify-between bg-slate-900/60 z-20">
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <button onclick="closeAlbumViewer()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white"><i class="fa-solid fa-arrow-left"></i></button>
+                <div>
+                    <h3 id="viewerAlbumTitle" class="text-sm sm:text-lg font-bold text-white font-playfair truncate max-w-[140px] sm:max-w-none">Álbum</h3>
+                    <p id="viewerAlbumMeta" class="text-[10px] sm:text-xs text-slate-400">0 fotos</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-1.5 sm:space-x-2">
+                <button onclick="toggleGlobalMusic()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-400" title="Áudio"><i id="viewerAudioIcon" class="fa-solid fa-volume-high text-xs"></i></button>
+                <button onclick="toggleSlideshow()" class="px-2.5 sm:px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[11px] sm:text-xs flex items-center space-x-1"><i class="fa-solid fa-play"></i><span id="slideshowBtnText" class="hidden xs:inline">Apresentação</span></button>
+                <button onclick="openManageImagesModal()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white" title="Gerenciar Fotos"><i class="fa-solid fa-images"></i></button>
+            </div>
+        </div>
+        <div id="viewerStage" class="flex-grow relative flex items-center justify-center p-1 sm:p-4 md:p-6 overflow-hidden">
+            <div id="pageFlipBookContainer" class="w-full h-full flex items-center justify-center relative"><div id="myBook"></div></div>
+        </div>
+        <div class="p-2 sm:p-3 border-t border-white/10 bg-slate-900/80 flex items-center justify-between z-20">
+            <button onclick="prevPhoto()" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-white"><i class="fa-solid fa-chevron-left"></i></button>
+            <div id="thumbnailsStrip" class="flex items-center space-x-1.5 sm:space-x-2 overflow-x-auto max-w-xs sm:max-w-2xl px-1 no-scrollbar py-1"></div>
+            <button onclick="nextPhoto()" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-white"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+    </div>
+
+    <!-- LIGHTBOX -->
+    <div id="lightboxModal" class="fixed inset-0 z-50 hidden bg-black/95 backdrop-blur-2xl flex flex-col justify-between p-3 sm:p-4">
+        <div class="flex items-center justify-between text-white z-10">
+            <span id="lightboxCounter" class="text-xs text-slate-400 font-mono">1 / 1</span>
+            <div class="flex items-center space-x-2">
+                <button onclick="toggleLightboxSlideshow()" class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center space-x-1"><i class="fa-solid fa-play text-xs" id="lightboxPlayIcon"></i><span class="hidden sm:inline" id="lightboxPlayText">Play</span></button>
+                <button onclick="toggleZoom()" class="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white" title="Zoom"><i class="fa-solid fa-magnifying-glass"></i></button>
+                <button onclick="downloadCurrentImage()" class="p-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3 flex items-center space-x-1 text-xs" title="Baixar"><i class="fa-solid fa-download"></i><span>Baixar</span></button>
+                <button onclick="closeLightbox()" class="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+        </div>
+        <div class="relative flex-grow flex items-center justify-center overflow-auto p-1 sm:p-2">
+            <img id="lightboxImage" src="" class="max-h-full max-w-full object-contain rounded-md transition-transform duration-300 cursor-zoom-in">
+        </div>
+        <div class="flex justify-between items-center z-10 pt-2">
+            <button onclick="navigateLightbox(-1)" class="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs"><i class="fa-solid fa-arrow-left"></i> Anterior</button>
+            <span id="lightboxCaption" class="text-xs text-slate-300 italic truncate max-w-xs"></span>
+            <button onclick="navigateLightbox(1)" class="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs">Próxima <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+    </div>
+
+    <!-- MODAL EDITAR/CRIAR ÁLBUM -->
+    <div id="albumFormModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-white/10 rounded-2xl max-w-md w-full p-6 shadow-2xl relative overflow-y-auto max-h-[90vh]">
+            <button onclick="closeAlbumFormModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            <h3 id="albumFormTitle" class="text-lg font-bold text-white mb-4">Novo Álbum</h3>
+            <form id="albumForm" onsubmit="handleSaveAlbum(event)" class="space-y-4">
+                <input type="hidden" id="editAlbumId">
+                <div><label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Título</label><input type="text" id="albumTitleInput" required class="w-full bg-slate-800 border border-white/10 rounded-lg p-2.5 text-sm text-white"></div>
+                <div><label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Estilo</label><select id="albumStyleInput" class="w-full bg-slate-800 border border-white/10 rounded-lg p-2.5 text-sm text-white"><option value="livro">Livro 3D</option><option value="revista">Revista</option><option value="quadrinho">Quadrinho</option><option value="casamento">Casamento</option></select></div>
+                <div><label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Descrição</label><textarea id="albumDescInput" rows="2" class="w-full bg-slate-800 border border-white/10 rounded-lg p-2.5 text-sm text-white"></textarea></div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Capa do Álbum</label>
+                    <div class="flex space-x-2">
+                        <input type="text" id="albumCoverInput" class="flex-1 bg-slate-800 border border-white/10 rounded-lg p-2.5 text-sm text-white" oninput="updateCoverPreview(this.value)">
+                        <label class="cursor-pointer bg-slate-800 hover:bg-slate-700 border border-white/10 rounded-lg px-3 py-2 text-xs text-slate-300 flex items-center justify-center"><span>Upload</span><input type="file" accept="image/*" class="hidden" onchange="handleCoverFileUpload(event)"></label>
+                    </div>
+                </div>
+                <div class="w-full h-32 bg-slate-800 rounded-xl overflow-hidden border border-white/10 flex items-center justify-center"><img id="coverPreviewImg" src="" class="w-full h-full object-cover"></div>
+                <div>
+                    <label class="block text-xs font-semibold text-amber-400 uppercase mb-1">Áudio Individual do Álbum (MP3)</label>
+                    <div class="flex space-x-2">
+                        <input type="text" id="albumAudioInput" class="flex-1 bg-slate-800 border border-amber-500/30 rounded-lg p-2.5 text-sm text-white">
+                        <label class="cursor-pointer bg-slate-800 hover:bg-slate-700 border border-white/10 rounded-lg px-3 py-2 text-xs text-slate-300 flex items-center justify-center"><span>Upload MP3</span><input type="file" accept="audio/*" class="hidden" onchange="handleAlbumAudioUpload(event)"></label>
+                    </div>
+                </div>
+                <div class="pt-2 flex justify-end space-x-3">
+                    <button type="button" onclick="closeAlbumFormModal()" class="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 text-sm">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 rounded-lg bg-amber-500 text-slate-950 font-bold text-sm">Salvar Álbum</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL GESTÃO DE FOTOS (COM EDIÇÃO EM MASSA DE LEGENDA E AUTOR) -->
+    <div id="manageImagesModal" class="fixed inset-0 z-50 hidden bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-slate-900 border border-white/10 rounded-2xl max-w-3xl w-full p-4 sm:p-6 shadow-2xl relative flex flex-col max-h-[90vh]">
+            <div class="flex items-center justify-between pb-3 border-b border-white/10 mb-3">
+                <h3 class="text-sm sm:text-lg font-bold text-white">Gerenciar e Enviar Fotos em Massa</h3>
+                <button onclick="closeManageImagesModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            
+            <div class="bg-slate-800/80 p-3 rounded-xl mb-3 border border-amber-500/30 space-y-2">
+                <label class="cursor-pointer bg-slate-900 border border-white/15 rounded-lg p-2.5 text-center text-xs text-slate-300 flex items-center justify-center space-x-2 block">
+                    <i class="fa-solid fa-images text-amber-400"></i>
+                    <span id="bulkFilesLabel">Selecionar Várias Imagens</span>
+                    <input type="file" id="bulkFilesInput" accept="image/*" multiple class="hidden" onchange="handleBulkFilesSelected(event)">
+                </label>
+                <button onclick="executeBulkUpload()" class="w-full py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-lg">Enviar Imagens Selecionadas</button>
+            </div>
+
+            <!-- Ferramentas em Massa para Legenda e Autor -->
+            <div class="bg-slate-800/50 p-2.5 rounded-xl border border-white/10 mb-3 space-y-2">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <input type="text" id="massCaptionInput" placeholder="Nova legenda para selecionados..." class="bg-slate-900 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white">
+                    <input type="text" id="massAuthorInput" placeholder="Novo 'Criado por' para selecionados..." class="bg-slate-900 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white">
+                </div>
+                <button onclick="applyMassEdit()" class="w-full py-1.5 bg-slate-700 hover:bg-slate-600 text-amber-400 font-semibold text-xs rounded-lg border border-amber-500/30">
+                    <i class="fa-solid fa-pen-to-square mr-1"></i> Aplicar em Massa aos Selecionados
+                </button>
+            </div>
+
+            <!-- Barra de Selecionar Todos / Excluir Selecionados -->
+            <div class="flex items-center justify-between pb-2 border-b border-white/10 text-xs text-slate-300 mb-2">
+                <div class="flex items-center space-x-2">
+                    <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAllPhotos(this.checked)" class="w-4 h-4 accent-amber-400 cursor-pointer">
+                    <span class="font-semibold text-xs">Selecionar Todas</span>
+                </div>
+                <button onclick="deleteSelectedPhotos()" class="px-2.5 py-1.5 bg-red-600/80 hover:bg-red-600 text-white font-semibold rounded-lg text-xs transition-all flex items-center space-x-1">
+                    <i class="fa-solid fa-trash"></i>
+                    <span>Excluir Selecionadas (<span id="selectedCount">0</span>)</span>
+                </button>
+            </div>
+
+            <div class="flex-grow overflow-y-auto space-y-2 pr-1 min-h-[140px] max-h-[220px]" id="manageImagesList"></div>
+
+            <div class="pt-3 border-t border-white/10 flex justify-end">
+                <button onclick="closeManageImagesModal()" class="px-6 py-2 bg-amber-500 text-slate-950 font-bold text-xs rounded-xl">Salvar e Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE CONTEÚDO CUSTOMIZADO (Menus 1 e 2) -->
+    <div id="customContentModal" class="fixed inset-0 z-50 hidden bg-black/90 backdrop-blur-md flex flex-col justify-between p-4">
+        <div class="flex items-center justify-between text-white z-10 pb-3 border-b border-white/10">
+            <h3 id="customModalTitle" class="text-base font-bold text-amber-400">Conteúdo</h3>
+            <button onclick="closeCustomContentModal()" class="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div id="customModalBody" class="flex-grow relative flex items-center justify-center overflow-auto p-4 w-full h-full"></div>
+    </div>
+
+    <script>
+        let supabaseClient = null;
+        let albums = [];
+        let siteTexts = { 
+            title: 'Foto Evento', 
+            subtitle: 'Livro de Casamento Digital Animado', 
+            heroBadge: 'Portfólio Profissional',
+            heroHeading: 'Memórias Inesquecíveis em Experiências Visuais',
+            heroSubtext: 'Navegue por álbuns estilizados em 3D, revistas, quadrinhos e muito mais.',
+            footer: '© 2026 Foto Evento. Todos os direitos reservados.', 
+            supabaseUrl: 'https://oxlcaabjttrbbfcgoutl.supabase.co', 
+            supabaseKey: 'sb_publishable_8X7TfiIXI2UGYqttUHsjKA_jLLhua0z',
+            social: { instagram: '#', facebook: '#', whatsapp: '#' },
+            menu1: { title: '', type: 'link', content: '' },
+            menu2: { title: '', type: 'link', content: '' }
+        };
+        let currentAlbumId = null;
+        let pageFlipInstance = null;
+        let slideshowTimer = null;
+        let lightboxSlideshowTimer = null;
+        let isAdminLoggedIn = false;
+        let audioMuted = false;
+        let bulkFilesArray = [];
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            const bgClass = type === 'success' ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white';
+            const icon = type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation';
+            
+            toast.className = `pointer-events-auto px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-2 text-xs font-semibold transition-all transform translate-y-2 opacity-0 ${bgClass}`;
+            toast.innerHTML = `<i class="fa-solid ${icon} text-sm"></i><span>${message}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => { toast.classList.remove('translate-y-2', 'opacity-0'); }, 10);
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            lucide.createIcons();
+            const savedTexts = JSON.parse(localStorage.getItem('lumina_site_texts') || '{}');
+            
+            siteTexts.supabaseUrl = savedTexts.supabaseUrl || 'https://oxlcaabjttrbbfcgoutl.supabase.co';
+            siteTexts.supabaseKey = savedTexts.supabaseKey || 'sb_publishable_8X7TfiIXI2UGYqttUHsjKA_jLLhua0z';
+            if(savedTexts.social) siteTexts.social = savedTexts.social;
+            if(savedTexts.menu1) siteTexts.menu1 = savedTexts.menu1;
+            if(savedTexts.menu2) siteTexts.menu2 = savedTexts.menu2;
+
+            document.getElementById('configSupabaseUrl').value = siteTexts.supabaseUrl;
+            document.getElementById('configSupabaseKey').value = siteTexts.supabaseKey;
+
+            initSupabase(siteTexts.supabaseUrl, siteTexts.supabaseKey);
+            await loadDataFromSupabaseOrLocal();
+            renderSocialIcons();
+            renderCustomMenus();
+        });
+
+        function initSupabase(url, key) {
+            try {
+                supabaseClient = window.supabase.createClient(url, key);
+            } catch(e) {
+                console.error("Erro Supabase:", e);
+            }
+        }
+
+        async function initSupabaseAndSave() {
+            const url = document.getElementById('configSupabaseUrl').value.trim();
+            const key = document.getElementById('configSupabaseKey').value.trim();
+            if(!url || !key) return showToast('Preencha URL e Key.', 'error');
+            initSupabase(url, key);
+            siteTexts.supabaseUrl = url;
+            siteTexts.supabaseKey = key;
+            await saveConfigToSupabase();
+        }
+
+        function renderSocialIcons() {
+            const containerHeader = document.getElementById('headerSocialIcons');
+            const containerFooter = document.getElementById('footerSocialIcons');
+            const s = siteTexts.social || {};
+
+            let html = '';
+            if(s.instagram && s.instagram !== '#') html += `<a href="${s.instagram}" target="_blank" class="hover:text-pink-400 transition-colors"><i class="fa-brands fa-instagram text-base"></i></a>`;
+            if(s.facebook && s.facebook !== '#') html += `<a href="${s.facebook}" target="_blank" class="hover:text-blue-400 transition-colors"><i class="fa-brands fa-facebook text-base"></i></a>`;
+            if(s.whatsapp && s.whatsapp !== '#') html += `<a href="https://wa.me/${s.whatsapp}" target="_blank" class="hover:text-green-400 transition-colors"><i class="fa-brands fa-whatsapp text-base"></i></a>`;
+
+            if(containerHeader) containerHeader.innerHTML = html;
+            if(containerFooter) containerFooter.innerHTML = html;
+        }
+
+        function renderCustomMenus() {
+            const container = document.getElementById('customMenuItemsContainer');
+            let html = '';
+            [siteTexts.menu1, siteTexts.menu2].forEach((m, idx) => {
+                if(m && m.title) {
+                    html += `<button onclick="handleCustomMenuClick(${idx+1})" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-all border border-white/10 flex items-center space-x-1.5 flex-shrink-0"><i class="fa-solid fa-bookmark text-amber-400"></i><span>${m.title}</span></button>`;
+                }
+            });
+            if(container) container.innerHTML = html;
+        }
+
+        function handleCustomMenuClick(menuNum) {
+            const m = menuNum === 1 ? siteTexts.menu1 : siteTexts.menu2;
+            if(!m) return;
+            if(m.type === 'link') {
+                window.open(m.content, '_blank');
+            } else if(m.type === 'iframe') {
+                document.getElementById('customModalTitle').innerText = m.title;
+                document.getElementById('customModalBody').innerHTML = `<iframe src="${m.content}" class="w-full h-full rounded-xl border-0"></iframe>`;
+                document.getElementById('customContentModal').classList.remove('hidden');
+            } else if(m.type === 'html') {
+                document.getElementById('customModalTitle').innerText = m.title;
+                document.getElementById('customModalBody').innerHTML = `<div class="w-full h-full overflow-auto bg-slate-900 p-4 rounded-xl text-white">${m.content}</div>`;
+                document.getElementById('customContentModal').classList.remove('hidden');
+            }
+        }
+
+        function closeCustomContentModal() {
+            document.getElementById('customContentModal').classList.add('hidden');
+            document.getElementById('customModalBody').innerHTML = '';
+        }
+
+        async function loadDataFromSupabaseOrLocal() {
+            if(supabaseClient) {
+                try {
+                    const { data: configData } = await supabaseClient.from('book_config').select('*').limit(1).single();
+                    if(configData) siteTexts = { ...siteTexts, ...configData };
+
+                    const { data: albumsData } = await supabaseClient.from('book_albums').select('*');
+                    const { data: photosData } = await supabaseClient.from('book_photos').select('*');
+
+                    if(albumsData) {
+                        albums = albumsData.map(alb => ({
+                            ...alb,
+                            desc: alb.description,
+                            cover: alb.cover_url,
+                            audio: alb.audio_url,
+                            photos: (photosData || []).filter(p => p.album_id === alb.id).map(p => ({ url: p.url, caption: p.caption, author: p.author }))
+                        }));
+                    }
+                } catch(e) {
+                    console.log("Modo offline / Tabela vazia.");
+                }
+            }
+            
+            if(!albums || albums.length === 0) {
+                albums = JSON.parse(localStorage.getItem('lumina_albums')) || [
+                    { id: '1', title: 'Dudu', style: 'livro', desc: 'Livro de Memórias', cover: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80', audio: '', photos: [{ url: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1000&q=80', caption: 'Início', author: 'Foto Evento' }] }
+                ];
+            }
+            applySiteSettings();
+            renderAlbumsGrid();
+        }
+
+        async function uploadFileToSupabaseStorage(file, folder = 'media') {
+            if(!supabaseClient) return URL.createObjectURL(file);
+            try {
+                const fileName = `${folder}/${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
+                const { error } = await supabaseClient.storage.from('book-bucket').upload(fileName, file);
+                if(error) throw error;
+                const { data: publicUrlData } = supabaseClient.storage.from('book-bucket').getPublicUrl(fileName);
+                showToast("Upload realizado com sucesso!", "success");
+                return publicUrlData.publicUrl;
+            } catch(e) {
+                showToast("Erro no Upload Storage: " + e.message, "error");
+                return URL.createObjectURL(file);
+            }
+        }
+
+        async function saveConfigToSupabase() {
+            localStorage.setItem('lumina_site_texts', JSON.stringify(siteTexts));
+            if(supabaseClient) {
+                try {
+                    await supabaseClient.from('book_config').upsert({ 
+                        id: 1, 
+                        site_title: siteTexts.title, 
+                        site_subtitle: siteTexts.subtitle, 
+                        hero_badge: siteTexts.heroBadge,
+                        hero_heading: siteTexts.heroHeading,
+                        hero_subtext: siteTexts.heroSubtext,
+                        footer_text: siteTexts.footer, 
+                        social_data: siteTexts.social,
+                        menu1: siteTexts.menu1,
+                        menu2: siteTexts.menu2
+                    });
+                    showToast("Configurações salvas!", "success");
+                } catch(e) {
+                    showToast("Erro ao salvar config: " + e.message, "error");
+                }
+            }
+        }
+
+        async function saveAlbumsToSupabase() {
+            localStorage.setItem('lumina_albums', JSON.stringify(albums));
+            if(supabaseClient) {
+                try {
+                    for(let alb of albums) {
+                        await supabaseClient.from('book_albums').upsert({ id: alb.id, title: alb.title, style: alb.style, description: alb.desc, cover_url: alb.cover, audio_url: alb.audio });
+                        await supabaseClient.from('book_photos').delete().eq('album_id', alb.id);
+                        if(alb.photos && alb.photos.length > 0) {
+                            const photosPayload = alb.photos.map(p => ({ album_id: alb.id, url: p.url, caption: p.caption, author: p.author }));
+                            await supabaseClient.from('book_photos').insert(photosPayload);
+                        }
+                    }
+                    showToast("Álbuns salvos no Supabase!", "success");
+                } catch(e) {
+                    showToast("Erro ao salvar álbuns: " + e.message, "error");
+                }
+            }
+        }
+
+        function applySiteSettings() {
+            document.getElementById('siteTitleText').innerText = siteTexts.title;
+            document.getElementById('siteSubtitleText').innerText = siteTexts.subtitle;
+            document.getElementById('heroBadgeText').innerText = siteTexts.heroBadge || 'Portfólio Profissional';
+            document.getElementById('heroHeading').innerText = siteTexts.heroHeading || 'Memórias Inesquecíveis em Experiências Visuais';
+            document.getElementById('heroSubtext').innerText = siteTexts.heroSubtext || 'Navegue por álbuns estilizados em 3D, revistas, quadrinhos e muito mais.';
+            document.getElementById('footerText').innerText = siteTexts.footer;
+
+            document.getElementById('configTitle').value = siteTexts.title;
+            document.getElementById('configSubtitle').value = siteTexts.subtitle;
+            document.getElementById('configHeroBadge').value = siteTexts.heroBadge || '';
+            document.getElementById('configHeroHeading').value = siteTexts.heroHeading || '';
+            document.getElementById('configHeroSubtext').value = siteTexts.heroSubtext || '';
+            document.getElementById('configFooter').value = siteTexts.footer;
+
+            if(siteTexts.social) {
+                document.getElementById('socialInstagram').value = siteTexts.social.instagram || '';
+                document.getElementById('socialFacebook').value = siteTexts.social.facebook || '';
+                document.getElementById('socialWhatsapp').value = siteTexts.social.whatsapp || '';
+            }
+            if(siteTexts.menu1) {
+                document.getElementById('menu1Title').value = siteTexts.menu1.title || '';
+                document.getElementById('menu1Type').value = siteTexts.menu1.type || 'link';
+                document.getElementById('menu1Content').value = siteTexts.menu1.content || '';
+            }
+            if(siteTexts.menu2) {
+                document.getElementById('menu2Title').value = siteTexts.menu2.title || '';
+                document.getElementById('menu2Type').value = siteTexts.menu2.type || 'link';
+                document.getElementById('menu2Content').value = siteTexts.menu2.content || '';
+            }
+        }
+
+        function renderAlbumsGrid(filterStyle = 'todos') {
+            const grid = document.getElementById('albumsGrid');
+            let filtered = filterStyle === 'todos' ? albums : albums.filter(a => a.style === filterStyle);
+
+            if(filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-full py-16 text-center text-slate-400 text-sm">Nenhum álbum encontrado.</div>`;
+                return;
+            }
+
+            grid.innerHTML = filtered.map(album => `
+                <div class="bg-slate-900/90 border border-white/10 rounded-2xl overflow-hidden shadow-xl hover:border-amber-500/50 transition-all flex flex-col group">
+                    <div class="relative h-52 overflow-hidden bg-slate-950 cursor-pointer" onclick="openAlbumViewer('${album.id}')">
+                        <img src="${album.cover}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <span class="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-slate-950/80 backdrop-blur-md text-[10px] font-bold text-amber-400 uppercase tracking-wider">${album.style}</span>
+                    </div>
+                    <div class="p-5 flex-grow flex flex-col justify-between space-y-4">
+                        <div>
+                            <h3 class="font-bold text-lg text-white font-playfair mb-1">${album.title}</h3>
+                            <p class="text-xs text-slate-400 line-clamp-2">${album.desc || ''}</p>
+                        </div>
+                        <div class="flex items-center justify-between pt-3 border-t border-white/10 text-xs">
+                            <span class="text-slate-400"><i class="fa-solid fa-images text-amber-400 mr-1"></i> ${album.photos.length} fotos</span>
+                            <div class="flex items-center space-x-2">
+                                ${isAdminLoggedIn ? `<button onclick="editAlbum('${album.id}')" class="p-1.5 text-slate-400 hover:text-white" title="Editar"><i class="fa-solid fa-pen"></i></button><button onclick="deleteAlbum('${album.id}')" class="p-1.5 text-slate-400 hover:text-red-400" title="Excluir"><i class="fa-solid fa-trash"></i></button>` : ''}
+                                <button onclick="openAlbumViewer('${album.id}')" class="text-amber-400 font-semibold hover:underline">Abrir <i class="fa-solid fa-arrow-right text-[10px]"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function onDropdownFilterChange(val) { renderAlbumsGrid(val); }
+
+        function openAlbumViewer(id) {
+            currentAlbumId = id;
+            const album = albums.find(a => a.id === id);
+            if(!album) return;
+            document.getElementById('viewerAlbumTitle').innerText = album.title;
+            document.getElementById('viewerAlbumMeta').innerText = `${album.photos.length} Fotos`;
+            document.getElementById('albumViewerModal').classList.remove('hidden');
+            
+            if(album.audio) {
+                const audio = document.getElementById('bgAudio');
+                audio.src = album.audio;
+                audio.play().catch(e => console.log("Áudio aguardando clique"));
+            }
+            renderPageFlipBook(album);
+            renderThumbnailsStrip(album);
+        }
+
+        function triggerAutoAudio() {
+            const audio = document.getElementById('bgAudio');
+            if(audio.paused && audio.src) audio.play();
+        }
+
+        function toggleGlobalMusic() {
+            const audio = document.getElementById('bgAudio');
+            audioMuted = !audioMuted;
+            audio.muted = audioMuted;
+            document.getElementById('globalAudioIcon').className = audioMuted ? "fa-solid fa-volume-xmark text-red-400" : "fa-solid fa-volume-high text-amber-400";
+        }
+
+        function changeVolume(val) { document.getElementById('bgAudio').volume = val; }
+
+        function closeAlbumViewer() {
+            document.getElementById('albumViewerModal').classList.add('hidden');
+            document.getElementById('bgAudio').pause();
+            if(pageFlipInstance) { pageFlipInstance.destroy(); pageFlipInstance = null; }
+            if(slideshowTimer) { clearInterval(slideshowTimer); slideshowTimer = null; }
+        }
+
+        function renderPageFlipBook(album, targetPageIndex = 0) {
+            const container = document.getElementById('myBook');
+            container.innerHTML = `
+                <div class="page page-cover p-6 flex flex-col justify-between items-center text-center bg-cover bg-center" style="background-image: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.95)), url('${album.cover}');">
+                    <div class="border-2 border-amber-500/40 w-full h-full p-3 flex flex-col justify-between rounded-lg">
+                        <span class="text-[10px] uppercase text-amber-400 font-bold">Foto Evento</span>
+                        <div><h2 class="font-playfair text-3xl font-bold text-white mb-2">${album.title}</h2><p class="text-xs text-slate-300 italic">${album.desc || ''}</p></div>
+                        <span class="text-[10px] text-amber-400">Arraste ou clique</span>
+                    </div>
+                </div>
+            ` + album.photos.map((photo, idx) => `
+                <div class="page p-3 flex flex-col justify-between items-center text-center cursor-pointer bg-slate-900 border border-white/10" onclick="openLightbox(${idx})">
+                    <div class="w-full flex-grow flex items-center justify-center overflow-hidden rounded-lg bg-slate-950 p-1">
+                        <img src="${photo.url}" class="max-w-full max-h-[72vh] w-full h-full object-cover rounded-md shadow-md">
+                    </div>
+                    <div class="py-1"><p class="text-xs font-serif text-slate-200 italic">"${photo.caption || ''}" ${photo.author ? `<span class='text-[10px] text-slate-400 block'>Por: ${photo.author}</span>` : ''}</p></div>
+                </div>
+            `).join('') + `<div class="page page-cover p-6 flex flex-col justify-center items-center text-center"><h3 class="font-playfair text-xl font-bold text-amber-400">Fim</h3></div>`;
+
+            setTimeout(() => {
+                try {
+                    if (pageFlipInstance) pageFlipInstance.destroy();
+                    const stage = document.getElementById('viewerStage');
+                    const isMobile = window.innerWidth < 768;
+                    const w = Math.min(stage.clientWidth * (isMobile ? 0.98 : 0.85), 900);
+                    const h = Math.min(stage.clientHeight * (isMobile ? 0.92 : 0.9), 650);
+
+                    pageFlipInstance = new St.PageFlip(container, {
+                        width: isMobile ? w : w / 2,
+                        height: h,
+                        size: isMobile ? "stretch" : "fixed",
+                        showCover: true,
+                        mobileScrollSupport: true
+                    });
+                    pageFlipInstance.loadFromHTML(container.querySelectorAll('.page'));
+                    if(targetPageIndex > 0) pageFlipInstance.flip(targetPageIndex);
+                } catch(e) {}
+            }, 100);
+        }
+
+        function renderThumbnailsStrip(album) {
+            document.getElementById('thumbnailsStrip').innerHTML = album.photos.map((p, idx) => `
+                <div onclick="if(pageFlipInstance) pageFlipInstance.flip(${idx + 1})" class="w-12 h-12 rounded-lg overflow-hidden border-2 border-white/20 hover:border-amber-400 cursor-pointer flex-shrink-0"><img src="${p.url}" class="w-full h-full object-cover"></div>
+            `).join('');
+        }
+
+        function prevPhoto() { if(pageFlipInstance) pageFlipInstance.flipPrev(); }
+        function nextPhoto() { if(pageFlipInstance) pageFlipInstance.flipNext(); }
+
+        function toggleSlideshow() {
+            const btnText = document.getElementById('slideshowBtnText');
+            if(slideshowTimer) {
+                clearInterval(slideshowTimer);
+                slideshowTimer = null;
+                if(btnText) btnText.innerText = 'Apresentação';
+            } else {
+                if(btnText) btnText.innerText = 'Pausar';
+                slideshowTimer = setInterval(() => {
+                    if(pageFlipInstance) {
+                        if(pageFlipInstance.getCurrentPageIndex() < pageFlipInstance.getPageCount() - 1) {
+                            pageFlipInstance.flipNext();
+                        } else {
+                            pageFlipInstance.flip(0);
+                        }
+                    }
+                }, 3500);
+            }
+        }
+
+        let lightboxIndex = 0;
+        let isZoomed = false;
+
+        function openLightbox(index) {
+            lightboxIndex = index;
+            const album = albums.find(a => a.id === currentAlbumId);
+            if(!album || !album.photos[index]) return;
+            const photo = album.photos[index];
+            document.getElementById('lightboxImage').src = photo.url;
+            document.getElementById('lightboxCaption').innerText = (photo.caption || '') + (photo.author ? ` (Por: ${photo.author})` : '');
+            document.getElementById('lightboxCounter').innerText = `${index + 1} / ${album.photos.length}`;
+            document.getElementById('lightboxModal').classList.remove('hidden');
+            isZoomed = false;
+            document.getElementById('lightboxImage').style.transform = 'scale(1)';
+        }
+
+        function closeLightbox() {
+            document.getElementById('lightboxModal').classList.add('hidden');
+            if(lightboxSlideshowTimer) { clearInterval(lightboxSlideshowTimer); lightboxSlideshowTimer = null; }
+            document.getElementById('lightboxPlayText').innerText = 'Play';
+            document.getElementById('lightboxPlayIcon').className = 'fa-solid fa-play text-xs';
+        }
+
+        function navigateLightbox(dir) {
+            const album = albums.find(a => a.id === currentAlbumId);
+            lightboxIndex = (lightboxIndex + dir + album.photos.length) % album.photos.length;
+            openLightbox(lightboxIndex);
+        }
+
+        function toggleZoom() {
+            const img = document.getElementById('lightboxImage');
+            isZoomed = !isZoomed;
+            img.style.transform = isZoomed ? 'scale(1.8)' : 'scale(1)';
+        }
+
+        function toggleLightboxSlideshow() {
+            const playText = document.getElementById('lightboxPlayText');
+            const playIcon = document.getElementById('lightboxPlayIcon');
+            if(lightboxSlideshowTimer) {
+                clearInterval(lightboxSlideshowTimer);
+                lightboxSlideshowTimer = null;
+                playText.innerText = 'Play';
+                playIcon.className = 'fa-solid fa-play text-xs';
+            } else {
+                playText.innerText = 'Pause';
+                playIcon.className = 'fa-solid fa-pause text-xs';
+                lightboxSlideshowTimer = setInterval(() => { navigateLightbox(1); }, 3000);
+            }
+        }
+
+        function downloadCurrentImage() {
+            const album = albums.find(a => a.id === currentAlbumId);
+            if(!album || !album.photos[lightboxIndex]) return;
+            const photo = album.photos[lightboxIndex];
+            const a = document.createElement('a');
+            a.href = photo.url;
+            a.download = `foto_${lightboxIndex + 1}.jpg`;
+            a.target = '_blank';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function requestAdminAccess() { if(isAdminLoggedIn) toggleSettingsDrawer(); else document.getElementById('passwordModal').classList.remove('hidden'); }
+        function closePasswordModal() { document.getElementById('passwordModal').classList.add('hidden'); }
+        function verifyAdminPassword() {
+            if(document.getElementById('adminPasswordInput').value === '12345') {
+                isAdminLoggedIn = true; closePasswordModal(); toggleSettingsDrawer(); renderAlbumsGrid();
+                showToast("Acesso administrativo liberado!", "success");
+            } else {
+                showToast("Senha incorreta!", "error");
+            }
+        }
+        function toggleSettingsDrawer() { document.getElementById('settingsDrawer').classList.toggle('translate-x-full'); }
+        function checkAdminForNewAlbum() { if(!isAdminLoggedIn) requestAdminAccess(); else openAlbumFormModal(); }
+
+        function openAlbumFormModal(id = null) {
+            document.getElementById('albumFormModal').classList.remove('hidden');
+            if(id) {
+                const a = albums.find(x => x.id === id);
+                document.getElementById('editAlbumId').value = a.id;
+                document.getElementById('albumTitleInput').value = a.title;
+                document.getElementById('albumStyleInput').value = a.style;
+                document.getElementById('albumDescInput').value = a.desc;
+                document.getElementById('albumCoverInput').value = a.cover;
+                document.getElementById('coverPreviewImg').src = a.cover;
+                document.getElementById('albumAudioInput').value = a.audio || '';
+            } else {
+                document.getElementById('editAlbumId').value = '';
+                document.getElementById('albumTitleInput').value = '';
+                document.getElementById('albumDescInput').value = '';
+                document.getElementById('albumCoverInput').value = 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80';
+                document.getElementById('coverPreviewImg').src = document.getElementById('albumCoverInput').value;
+                document.getElementById('albumAudioInput').value = '';
+            }
+        }
+        function closeAlbumFormModal() { document.getElementById('albumFormModal').classList.add('hidden'); }
+        function updateCoverPreview(url) { document.getElementById('coverPreviewImg').src = url; }
+
+        async function handleCoverFileUpload(e) {
+            if(e.target.files[0]) {
+                const url = await uploadFileToSupabaseStorage(e.target.files[0], 'covers');
+                document.getElementById('albumCoverInput').value = url;
+                document.getElementById('coverPreviewImg').src = url;
+            }
+        }
+        async function handleAlbumAudioUpload(e) {
+            if(e.target.files[0]) {
+                const url = await uploadFileToSupabaseStorage(e.target.files[0], 'audio');
+                document.getElementById('albumAudioInput').value = url;
+            }
+        }
+
+        async function handleSaveAlbum(e) {
+            e.preventDefault();
+            const id = document.getElementById('editAlbumId').value;
+            const title = document.getElementById('albumTitleInput').value;
+            const style = document.getElementById('albumStyleInput').value;
+            const desc = document.getElementById('albumDescInput').value;
+            const cover = document.getElementById('albumCoverInput').value;
+            const audio = document.getElementById('albumAudioInput').value;
+
+            if(id) {
+                const a = albums.find(x => x.id === id);
+                a.title = title; a.style = style; a.desc = desc; a.cover = cover; a.audio = audio;
+            } else {
+                albums.push({ id: Date.now().toString(), title, style, desc, cover, audio, photos: [{ url: cover, caption: 'Capa', author: 'Foto Evento' }] });
+            }
+            await saveAlbumsToSupabase();
+            closeAlbumFormModal();
+            renderAlbumsGrid();
+        }
+
+        function editAlbum(id) { openAlbumFormModal(id); }
+        async function deleteAlbum(id) {
+            if(confirm('Excluir álbum?')) {
+                albums = albums.filter(x => x.id !== id);
+                if(supabaseClient) await supabaseClient.from('book_albums').delete().eq('id', id);
+                await saveAlbumsToSupabase();
+                renderAlbumsGrid();
+                showToast("Álbum excluído com sucesso!", "success");
+            }
+        }
+
+        function openManageImagesModal() { document.getElementById('manageImagesModal').classList.remove('hidden'); renderManageImagesList(); }
+        function closeManageImagesModal() {
+            document.getElementById('manageImagesModal').classList.add('hidden');
+            const alb = albums.find(a => a.id === currentAlbumId);
+            if(alb) { renderPageFlipBook(alb, 0); renderThumbnailsStrip(alb); }
+        }
+        function handleBulkFilesSelected(e) { if(e.target.files) bulkFilesArray = Array.from(e.target.files); }
+
+        async function executeBulkUpload() {
+            if(bulkFilesArray.length === 0) return showToast('Selecione arquivos primeiro.', 'error');
+            const alb = albums.find(a => a.id === currentAlbumId);
+            for(let file of bulkFilesArray) {
+                const url = await uploadFileToSupabaseStorage(file, 'photos');
+                alb.photos.push({ url, caption: file.name.replace(/\.[^/.]+$/, ""), author: 'Foto Evento' });
+            }
+            bulkFilesArray = [];
+            await saveAlbumsToSupabase();
+            renderManageImagesList();
+            showToast('Upload em massa concluído com sucesso!', 'success');
+        }
+
+        function renderManageImagesList() {
+            const alb = albums.find(a => a.id === currentAlbumId);
+            if(!alb) return;
+            document.getElementById('manageImagesList').innerHTML = alb.photos.map((p, idx) => `
+                <div class="flex flex-col sm:flex-row items-center justify-between bg-slate-800 p-2.5 rounded-xl border border-white/5 gap-2">
+                    <div class="flex items-center space-x-2 w-full sm:w-auto flex-grow truncate">
+                        <input type="checkbox" data-index="${idx}" onchange="updateSelectedCount()" class="photo-checkbox w-4 h-4 accent-amber-400 cursor-pointer flex-shrink-0">
+                        <img src="${p.url}" class="w-10 h-10 rounded-lg object-cover flex-shrink-0">
+                        <input type="text" value="${p.caption || ''}" onchange="updatePhotoField(${idx}, 'caption', this.value)" placeholder="Legenda..." class="flex-grow bg-slate-900 border border-white/10 rounded-lg px-2 py-1 text-xs text-white">
+                    </div>
+                    <div class="flex items-center space-x-2 w-full sm:w-auto justify-end">
+                        <input type="text" value="${p.author || ''}" onchange="updatePhotoField(${idx}, 'author', this.value)" placeholder="Criado por..." class="w-28 sm:w-32 bg-slate-900 border border-white/10 rounded-lg px-2 py-1 text-xs text-white">
+                        <button onclick="deletePhoto(${idx})" class="p-2 text-slate-400 hover:text-red-400 flex-shrink-0" title="Excluir"><i class="fa-solid fa-trash text-xs"></i></button>
+                    </div>
+                </div>
+            `).join('');
+            updateSelectedCount();
+        }
+
+        function updatePhotoField(idx, field, val) {
+            const alb = albums.find(a => a.id === currentAlbumId);
+            if(alb && alb.photos[idx]) {
+                alb.photos[idx][field] = val;
+                saveAlbumsToSupabase();
+            }
+        }
+
+        function toggleSelectAllPhotos(chk) {
+            document.querySelectorAll('.photo-checkbox').forEach(cb => cb.checked = chk);
+            updateSelectedCount();
+        }
+
+        function updateSelectedCount() {
+            const count = document.querySelectorAll('.photo-checkbox:checked').length;
+            document.getElementById('selectedCount').innerText = count;
+        }
+
+        async function applyMassEdit() {
+            const alb = albums.find(a => a.id === currentAlbumId);
+            const chks = document.querySelectorAll('.photo-checkbox:checked');
+            if(chks.length === 0) return showToast('Selecione pelo menos uma foto.', 'error');
+
+            const newCaption = document.getElementById('massCaptionInput').value.trim();
+            const newAuthor = document.getElementById('massAuthorInput').value.trim();
+
+            chks.forEach(cb => {
+                const idx = parseInt(cb.getAttribute('data-index'));
+                if(alb.photos[idx]) {
+                    if(newCaption !== '') alb.photos[idx].caption = newCaption;
+                    if(newAuthor !== '') alb.photos[idx].author = newAuthor;
+                }
+            });
+
+            await saveAlbumsToSupabase();
+            renderManageImagesList();
+            showToast('Alterações em massa aplicadas com sucesso!', 'success');
+        }
+
+        async function deletePhoto(idx) {
+            const alb = albums.find(a => a.id === currentAlbumId);
+            if(alb.photos.length > 1) {
+                alb.photos.splice(idx, 1);
+                await saveAlbumsToSupabase();
+                renderManageImagesList();
+                showToast("Foto removida!", "success");
+            } else showToast('Mantenha pelo menos 1 foto no álbum.', 'error');
+        }
+
+        async function deleteSelectedPhotos() {
+            const alb = albums.find(a => a.id === currentAlbumId);
+            const chks = document.querySelectorAll('.photo-checkbox:checked');
+            if(chks.length === 0) return showToast('Nenhuma foto selecionada.', 'error');
+            if(alb.photos.length - chks.length < 1) return alert('Você deve manter pelo menos 1 foto no álbum.');
+
+            if(confirm(`Deseja excluir ${chks.length} fotos selecionadas?`)) {
+                const indices = Array.from(chks).map(cb => parseInt(cb.getAttribute('data-index'))).sort((a,b)=>b-a);
+                indices.forEach(i => alb.photos.splice(i, 1));
+                await saveAlbumsToSupabase();
+                renderManageImagesList();
+                showToast("Fotos selecionadas excluídas!", "success");
+            }
+        }
+
+        async function savePageTexts() {
+            siteTexts.title = document.getElementById('configTitle').value;
+            siteTexts.subtitle = document.getElementById('configSubtitle').value;
+            siteTexts.heroBadge = document.getElementById('configHeroBadge').value;
+            siteTexts.heroHeading = document.getElementById('configHeroHeading').value;
+            siteTexts.heroSubtext = document.getElementById('configHeroSubtext').value;
+            siteTexts.footer = document.getElementById('configFooter').value;
+            await saveConfigToSupabase();
+            applySiteSettings();
+        }
+
+        async function saveSocialLinks() {
+            siteTexts.social = {
+                instagram: document.getElementById('socialInstagram').value,
+                facebook: document.getElementById('socialFacebook').value,
+                whatsapp: document.getElementById('socialWhatsapp').value
+            };
+            await saveConfigToSupabase();
+            renderSocialIcons();
+            showToast("Redes sociais salvas com sucesso!", "success");
+        }
+
+        async function saveCustomMenus() {
+            siteTexts.menu1 = { title: document.getElementById('menu1Title').value, type: document.getElementById('menu1Type').value, content: document.getElementById('menu1Content').value };
+            siteTexts.menu2 = { title: document.getElementById('menu2Title').value, type: document.getElementById('menu2Type').value, content: document.getElementById('menu2Content').value };
+            await saveConfigToSupabase();
+            renderCustomMenus();
+            showToast("Menus customizados salvos com sucesso!", "success");
+        }
+    </script>
+</body>
+</html>
