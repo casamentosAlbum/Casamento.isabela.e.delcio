@@ -52,7 +52,7 @@
         <header class="border-b border-white/10 bg-slate-900/80 backdrop-blur-md sticky top-0 z-40 px-3 sm:px-6 py-3 flex items-center justify-between">
             <div class="flex items-center space-x-2 sm:space-x-3">
                 <div id="logoContainer" class="p-2 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-200 text-slate-950 shadow-lg flex items-center justify-center overflow-hidden w-9 h-9 sm:w-10 sm:h-10">
-                    <i data-lucide="camera" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+                    <!-- Será preenchido por texto ou imagem da logo -->
                 </div>
                 <div>
                     <h1 id="siteTitleText" class="text-base sm:text-xl font-bold tracking-tight font-playfair truncate max-w-[130px] sm:max-w-none">Foto Evento</h1>
@@ -156,6 +156,15 @@
                 <div><label class="block text-[11px] text-slate-300 mb-1">SUPABASE URL</label><input type="text" id="configSupabaseUrl" class="w-full bg-slate-800 border border-white/10 rounded-lg p-2 text-xs text-white"></div>
                 <div><label class="block text-[11px] text-slate-300 mb-1">SUPABASE ANON KEY</label><input type="text" id="configSupabaseKey" class="w-full bg-slate-800 border border-white/10 rounded-lg p-2 text-xs text-white"></div>
                 <button onclick="initSupabaseAndSave()" class="w-full py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-lg">Atualizar Conexão Supabase</button>
+            </div>
+
+            <!-- Upload da Logo -->
+            <div class="space-y-3 bg-slate-800/40 p-4 rounded-xl border border-white/5">
+                <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wide">Logo do Site</h4>
+                <div class="flex space-x-2">
+                    <input type="text" id="configLogoUrl" placeholder="URL da Logo" class="flex-1 bg-slate-800 border border-white/10 rounded-lg p-2 text-xs text-white">
+                    <label class="cursor-pointer bg-slate-800 hover:bg-slate-700 border border-white/10 rounded-lg px-3 py-2 text-xs text-slate-300 flex items-center justify-center"><span>Upload Logo</span><input type="file" accept="image/*" class="hidden" onchange="handleLogoUpload(event)"></label>
+                </div>
             </div>
 
             <div class="space-y-3 bg-slate-800/40 p-4 rounded-xl border border-white/5">
@@ -276,7 +285,7 @@
         </div>
     </div>
 
-    <!-- MODAL GESTÃO DE FOTOS (COM EDIÇÃO EM MASSA DE LEGENDA E AUTOR) -->
+    <!-- MODAL GESTÃO DE FOTOS -->
     <div id="manageImagesModal" class="fixed inset-0 z-50 hidden bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
         <div class="bg-slate-900 border border-white/10 rounded-2xl max-w-3xl w-full p-4 sm:p-6 shadow-2xl relative flex flex-col max-h-[90vh]">
             <div class="flex items-center justify-between pb-3 border-b border-white/10 mb-3">
@@ -293,7 +302,6 @@
                 <button onclick="executeBulkUpload()" class="w-full py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-lg">Enviar Imagens Selecionadas</button>
             </div>
 
-            <!-- Ferramentas em Massa para Legenda e Autor -->
             <div class="bg-slate-800/50 p-2.5 rounded-xl border border-white/10 mb-3 space-y-2">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <input type="text" id="massCaptionInput" placeholder="Nova legenda para selecionados..." class="bg-slate-900 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white">
@@ -304,7 +312,6 @@
                 </button>
             </div>
 
-            <!-- Barra de Selecionar Todos / Excluir Selecionados -->
             <div class="flex items-center justify-between pb-2 border-b border-white/10 text-xs text-slate-300 mb-2">
                 <div class="flex items-center space-x-2">
                     <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAllPhotos(this.checked)" class="w-4 h-4 accent-amber-400 cursor-pointer">
@@ -343,6 +350,7 @@
             heroHeading: 'Memórias Inesquecíveis em Experiências Visuais',
             heroSubtext: 'Navegue por álbuns estilizados em 3D, revistas, quadrinhos e muito mais.',
             footer: '© 2026 Foto Evento. Todos os direitos reservados.', 
+            logoUrl: '',
             supabaseUrl: 'https://oxlcaabjttrbbfcgoutl.supabase.co', 
             supabaseKey: 'sb_publishable_8X7TfiIXI2UGYqttUHsjKA_jLLhua0z',
             social: { instagram: '#', facebook: '#', whatsapp: '#' },
@@ -378,11 +386,9 @@
             lucide.createIcons();
             const savedTexts = JSON.parse(localStorage.getItem('lumina_site_texts') || '{}');
             
-            siteTexts.supabaseUrl = savedTexts.supabaseUrl || 'https://oxlcaabjttrbbfcgoutl.supabase.co';
-            siteTexts.supabaseKey = savedTexts.supabaseKey || 'sb_publishable_8X7TfiIXI2UGYqttUHsjKA_jLLhua0z';
-            if(savedTexts.social) siteTexts.social = savedTexts.social;
-            if(savedTexts.menu1) siteTexts.menu1 = savedTexts.menu1;
-            if(savedTexts.menu2) siteTexts.menu2 = savedTexts.menu2;
+            siteTexts = { ...siteTexts, ...savedTexts };
+            if(!siteTexts.supabaseUrl) siteTexts.supabaseUrl = 'https://oxlcaabjttrbbfcgoutl.supabase.co';
+            if(!siteTexts.supabaseKey) siteTexts.supabaseKey = 'sb_publishable_8X7TfiIXI2UGYqttUHsjKA_jLLhua0z';
 
             document.getElementById('configSupabaseUrl').value = siteTexts.supabaseUrl;
             document.getElementById('configSupabaseKey').value = siteTexts.supabaseKey;
@@ -461,7 +467,21 @@
             if(supabaseClient) {
                 try {
                     const { data: configData } = await supabaseClient.from('book_config').select('*').limit(1).single();
-                    if(configData) siteTexts = { ...siteTexts, ...configData };
+                    if(configData) {
+                        siteTexts = { 
+                            ...siteTexts, 
+                            title: configData.site_title || siteTexts.title,
+                            subtitle: configData.site_subtitle || siteTexts.subtitle,
+                            heroBadge: configData.hero_badge || siteTexts.heroBadge,
+                            heroHeading: configData.hero_heading || siteTexts.heroHeading,
+                            heroSubtext: configData.hero_subtext || siteTexts.heroSubtext,
+                            footer: configData.footer_text || siteTexts.footer,
+                            logoUrl: configData.logo_url || siteTexts.logoUrl,
+                            social: configData.social_data || siteTexts.social,
+                            menu1: configData.menu1 || siteTexts.menu1,
+                            menu2: configData.menu2 || siteTexts.menu2
+                        };
+                    }
 
                     const { data: albumsData } = await supabaseClient.from('book_albums').select('*');
                     const { data: photosData } = await supabaseClient.from('book_photos').select('*');
@@ -516,6 +536,7 @@
                         hero_heading: siteTexts.heroHeading,
                         hero_subtext: siteTexts.heroSubtext,
                         footer_text: siteTexts.footer, 
+                        logo_url: siteTexts.logoUrl,
                         social_data: siteTexts.social,
                         menu1: siteTexts.menu1,
                         menu2: siteTexts.menu2
@@ -554,12 +575,22 @@
             document.getElementById('heroSubtext').innerText = siteTexts.heroSubtext || 'Navegue por álbuns estilizados em 3D, revistas, quadrinhos e muito mais.';
             document.getElementById('footerText').innerText = siteTexts.footer;
 
+            const logoContainer = document.getElementById('logoContainer');
+            if(siteTexts.logoUrl) {
+                logoContainer.innerHTML = `<img src="${siteTexts.logoUrl}" class="w-full h-full object-cover rounded-xl">`;
+                document.getElementById('siteFavicon').href = siteTexts.logoUrl;
+            } else {
+                logoContainer.innerHTML = `<i data-lucide="camera" class="w-5 h-5 sm:w-6 sm:h-6"></i>`;
+                lucide.createIcons();
+            }
+
             document.getElementById('configTitle').value = siteTexts.title;
             document.getElementById('configSubtitle').value = siteTexts.subtitle;
             document.getElementById('configHeroBadge').value = siteTexts.heroBadge || '';
             document.getElementById('configHeroHeading').value = siteTexts.heroHeading || '';
             document.getElementById('configHeroSubtext').value = siteTexts.heroSubtext || '';
             document.getElementById('configFooter').value = siteTexts.footer;
+            document.getElementById('configLogoUrl').value = siteTexts.logoUrl || '';
 
             if(siteTexts.social) {
                 document.getElementById('socialInstagram').value = siteTexts.social.instagram || '';
@@ -575,6 +606,16 @@
                 document.getElementById('menu2Title').value = siteTexts.menu2.title || '';
                 document.getElementById('menu2Type').value = siteTexts.menu2.type || 'link';
                 document.getElementById('menu2Content').value = siteTexts.menu2.content || '';
+            }
+        }
+
+        async function handleLogoUpload(e) {
+            if(e.target.files[0]) {
+                const url = await uploadFileToSupabaseStorage(e.target.files[0], 'logo');
+                document.getElementById('configLogoUrl').value = url;
+                siteTexts.logoUrl = url;
+                await saveConfigToSupabase();
+                applySiteSettings();
             }
         }
 
@@ -974,6 +1015,7 @@
             siteTexts.heroHeading = document.getElementById('configHeroHeading').value;
             siteTexts.heroSubtext = document.getElementById('configHeroSubtext').value;
             siteTexts.footer = document.getElementById('configFooter').value;
+            siteTexts.logoUrl = document.getElementById('configLogoUrl').value;
             await saveConfigToSupabase();
             applySiteSettings();
         }
