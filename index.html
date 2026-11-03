@@ -52,7 +52,7 @@
         <header class="border-b border-white/10 bg-slate-900/80 backdrop-blur-md sticky top-0 z-40 px-3 sm:px-6 py-3 flex items-center justify-between">
             <div class="flex items-center space-x-2 sm:space-x-3">
                 <div id="logoContainer" class="p-2 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-200 text-slate-950 shadow-lg flex items-center justify-center overflow-hidden w-9 h-9 sm:w-10 sm:h-10">
-                    <!-- Será preenchido por texto ou imagem da logo -->
+                    <i data-lucide="camera" class="w-5 h-5 sm:w-6 sm:h-6"></i>
                 </div>
                 <div>
                     <h1 id="siteTitleText" class="text-base sm:text-xl font-bold tracking-tight font-playfair truncate max-w-[130px] sm:max-w-none">Foto Evento</h1>
@@ -486,7 +486,7 @@
                     const { data: albumsData } = await supabaseClient.from('book_albums').select('*');
                     const { data: photosData } = await supabaseClient.from('book_photos').select('*');
 
-                    if(albumsData) {
+                    if(albumsData && albumsData.length > 0) {
                         albums = albumsData.map(alb => ({
                             ...alb,
                             desc: alb.description,
@@ -657,6 +657,19 @@
             currentAlbumId = id;
             const album = albums.find(a => a.id === id);
             if(!album) return;
+
+            // Destrói instância anterior do PageFlip
+            if(pageFlipInstance) {
+                try { pageFlipInstance.destroy(); } catch(e) {}
+                pageFlipInstance = null;
+            }
+
+            // Recria o DOM interno do book para evitar travamento em tela preta
+            const bookWrapper = document.getElementById('pageFlipBookContainer');
+            if(bookWrapper) {
+                bookWrapper.innerHTML = '<div id="myBook"></div>';
+            }
+
             document.getElementById('viewerAlbumTitle').innerText = album.title;
             document.getElementById('viewerAlbumMeta').innerText = `${album.photos.length} Fotos`;
             document.getElementById('albumViewerModal').classList.remove('hidden');
@@ -687,12 +700,25 @@
         function closeAlbumViewer() {
             document.getElementById('albumViewerModal').classList.add('hidden');
             document.getElementById('bgAudio').pause();
-            if(pageFlipInstance) { pageFlipInstance.destroy(); pageFlipInstance = null; }
+            
+            if(pageFlipInstance) { 
+                try { pageFlipInstance.destroy(); } catch(e) {} 
+                pageFlipInstance = null; 
+            }
+
+            const bookWrapper = document.getElementById('pageFlipBookContainer');
+            if(bookWrapper) {
+                bookWrapper.innerHTML = '<div id="myBook"></div>';
+            }
+
             if(slideshowTimer) { clearInterval(slideshowTimer); slideshowTimer = null; }
+            currentAlbumId = null;
         }
 
         function renderPageFlipBook(album, targetPageIndex = 0) {
             const container = document.getElementById('myBook');
+            if(!container) return;
+
             container.innerHTML = `
                 <div class="page page-cover p-6 flex flex-col justify-between items-center text-center bg-cover bg-center" style="background-image: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.95)), url('${album.cover}');">
                     <div class="border-2 border-amber-500/40 w-full h-full p-3 flex flex-col justify-between rounded-lg">
@@ -712,7 +738,6 @@
 
             setTimeout(() => {
                 try {
-                    if (pageFlipInstance) pageFlipInstance.destroy();
                     const stage = document.getElementById('viewerStage');
                     const isMobile = window.innerWidth < 768;
                     const w = Math.min(stage.clientWidth * (isMobile ? 0.98 : 0.85), 900);
